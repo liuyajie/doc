@@ -1,19 +1,46 @@
-一、docker的安装
-1、卸载docker
-yum remove docker docker-client  docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
-2、安装yum管理工具
+### 一、docker的安装
+
+#### 1、卸载docker
+
+```shell
+yum remove docker docker-client docker-client-latest docker-common docker-latest docker-latest-logrotate docker-logrotate docker-engine
+```
+
+#### 2、安装yum管理工具
+
+```shell
 yum install -y yum-utils
-3、安装一个docker下载源
+```
+
+#### 3、安装一个docker下载源
+
+```shell
 yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-4、安装docker
+```
+
+#### 4、安装docker
+
+```shell
 yum install docker-ce docker-ce-cli containerd.io
-5、启动docker
+```
+
+#### 5、启动docker
+
+```shell
 systemctl start docker
-6、关闭docker
+```
+
+#### 6、关闭docker
+
+```shell
 systemctl stop docker
-7、配置dockerhub加速器
-mkdir -p /etc/docker
-tee /etc/docker/daemon.json <<-'EOF'
+```
+
+#### 7、配置dockerhub加速器
+
+```shell
+mkdir -p /etc/docker   #新建一个目录
+tee /etc/docker/daemon.json <<-'EOF' 
 {
     "registry-mirrors": [
         "https://1nj0zren.mirror.aliyuncs.com",
@@ -23,14 +50,19 @@ tee /etc/docker/daemon.json <<-'EOF'
     ]
 }
 EOF
-8、配置dockerhub加速器之后重启docker
-systemctl restart docker
-9、官方的命令参考
+systemctl restart docker #重启docker
+```
+
+#### 9、官方的命令参考
+
+```shell
 https://docs.docker.com/engine/reference/commandline/pull/
+```
 
-二、docker常用命令
+### 二、docker常用命令
 
-1、镜像命令
+#### 1、镜像命令
+```shell
 docker search mysql 搜索镜像
 docker search -f=stars=3000 mysql 搜索星星>=3000的mysql镜像
 
@@ -47,8 +79,10 @@ docker rmi -f 镜像ID 镜像ID  删除多个镜像
 docker rmi -f $(docker images -aq) 删除所有的镜像
 
 docker rmi --help 查看帮助命令
+```
 
-2、容器命令
+#### 2、容器命令
+```shell
 docker run 镜像ID  如果镜像存在则运行，否则拉取一个镜像并运行
 	-it     交互式运行，进入容器内部
 	-d     后台运行
@@ -66,13 +100,18 @@ docker stop  容器ID 		停止容器
 docker start 容器ID  	开始容器
 docker restart 容器ID 	重启容器
 docker kill 容器ID		强制停止容器
+```
 
-3、容器的其他命令
+#### 3、其他命令
+```shell
 docker logs -tf -n 10 容器ID  查看容器的日志
 
 docker top 容器ID  查看容器中的进程ID
 
 docker inspect 容器ID 查看容器的元数据信息
+```
+
+
 
 
 
