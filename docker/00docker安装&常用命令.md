@@ -16,6 +16,9 @@ yum install -y yum-utils
 
 ```shell
 yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+
+# 更新yum源索引
+yum makecache fast
 ```
 
 #### 4、安装docker
@@ -60,6 +63,15 @@ https://docs.docker.com/engine/reference/commandline/pull/
 ```
 
 ### 二、docker常用命令
+
+#### 0、帮助命令
+
+```shell
+docker version  查看docker版本
+docker info 查看docker的系统信息，包括镜像和容器的数量
+docker run --help  查看某个命令的具体用法
+
+```
 
 #### 1、镜像命令
 ```shell
