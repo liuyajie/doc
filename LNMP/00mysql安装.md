@@ -98,7 +98,7 @@ rpm -ivh mysql-community-server-8.0.27-1.el7.x86_64.rpm
 yum install -y mysql-community-{server,client,common,libs}-*
 ```
 
-### 三、tar.gz安装（定制化更高一些）
+### 三、tar.gz安装（编译好的版本）
 
 #### 一、卸载
 
