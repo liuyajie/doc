@@ -87,8 +87,12 @@ systemctl disable nginx # 禁止开启自启动
 
 ##### 5、nginx的相关配置
 
-```
+```shell
 mkdir /data/www
+# 添加用户
+groupadd www
+useradd -r -s /bin/false -g www www
+chown www:www /data/www
 ```
 
 ```shell

@@ -66,6 +66,8 @@ cd php-7.4.26
 --enable-sysvshm \
 --enable-xml \
 --enable-fpm
+
+make && make install
 ```
 
 ##### 4、可能遇见的问题
@@ -176,9 +178,9 @@ rpm -e libzip
 rpm -e libzip-devel
 
 # 第二种，rpm安装
-yum install http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libzip-1.5.2-1.module_el8.2.0+314+53b99e08.x86_64.rpm
+yum install -y http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libzip-1.5.2-1.module_el8.2.0+314+53b99e08.x86_64.rpm
 
-yum install http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libzip-devel-1.5.2-1.module_el8.2.0+314+53b99e08.x86_64.rpm
+yum install -y http://mirror.centos.org/centos/8/AppStream/x86_64/os/Packages/libzip-devel-1.5.2-1.module_el8.2.0+314+53b99e08.x86_64.rpm
 
 # 第三种，源码安装libzip，1.2版本已经编译好了，直接使用安装即可，更高版本的需要自己编译。
 # 如果报错未找到，看看环境变量PKG_CONFIG_PATH是否设置正确
@@ -203,10 +205,11 @@ make install
 
 
 # 第一种，yum 安装cmake3，包有可能不存在，更新扩展包的源
+yum install -y epel-release
 yum install -y cmake3
+# 另一种方式安装epel-release
 wget https://download-ib01.fedoraproject.org/pub/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm
 rpm -ivh epel-release-7-14.noarch.rpm
-yum install -y cmake3
 
 # 第二种，源码 安装cmake3
 # https://github.com/Kitware/CMake

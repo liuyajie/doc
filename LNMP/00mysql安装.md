@@ -8,6 +8,8 @@ rpm -e --nodeps mysql-server #卸载mysql
 
 rpm -qa | grep mariadb #查看是否已经安装mariadb
 rpm -e --nodeps mariadb-server #卸载mariadb
+
+yum remove -y mariadb
 ```
 
 #### 二、添加mysql的yum源
@@ -56,17 +58,21 @@ systemctl daemon-reload #重新加载配置
 #### 五、mysql初始密码
 
 ```shell
-cat /var/log/mysqld.log | grep 'temporary password' #获取初始密码
+#获取初始密码
+cat /var/log/mysqld.log | grep 'temporary password' 
 
 mysql -uroot -p'mkjljfk)233' -hlocalhost
+#修改密码，如果有密码安全策略，需要修改成复杂一点的密码，或者修改取消掉密码策略，vim /etc/my.cnf validate_password=off
+set password='123456';
+alter user 'root'@'localhost' identified by '123456'; 
 
-alter user 'root'@'localhost' identified by '123456'; #修改密码，如果有密码安全策略，需要修改成复杂一点的密码，或者修改取消掉密码策略，vim /etc/my.cnf validate_password=off
-
+#设置远程访问
 user mysql;
-update user set host='%' where user='root'; #设置远程访问
+update user set host='%' where user='root'; 
 flush privileges;
 
-grant all privileges on *.* to 'root'@'%' identified by '123456' with grant option;#设置远程访问，比前者多添加一个账号
+#设置远程访问，比前者多添加一个账号
+grant all privileges on *.* to 'root'@'%' identified by '123456' with grant option;
 flush privileges;
 ```
 
@@ -131,7 +137,7 @@ cd /usr/local/mysql
 # 如果出错了没有关系，删除/usr/local/mysql/data目录即可
 ```
 
-```
+```shell
 vim /etc/my.cnf
 
 [mysqld]
@@ -147,8 +153,8 @@ symbolic-links=0
 lower_case_table_names = 1
  
 # 指定编码
-character-set-server=utf8
-collation-server=utf8_general_ci
+character-set-server=utf8mb4
+collation-server=utf8mb4_general_ci
  
 # 开启ip绑定
 bind-address = 0.0.0.0
@@ -160,8 +166,7 @@ pid-file=/var/run/mysqld/mysqld.pid
 #指定客户端连接mysql时的socket通信文件路径
 [client]
 socket=/usr/local/mysql/mysql.sock
- 
-default-character-set=utf8
+default-character-set=utf8mb4
 ```
 
 #### 四、启动mysql
@@ -208,18 +213,6 @@ systemctl status mysqld
 
 systemct disable mysqld #禁止开机自启动
 ```
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
