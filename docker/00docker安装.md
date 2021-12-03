@@ -50,6 +50,7 @@ mkdir -p /etc/docker   #新建一个目录
 tee /etc/docker/daemon.json <<-'EOF' 
 {
     "registry-mirrors": [
+        "http://hub-mirror.c.163.com",
         "https://1nj0zren.mirror.aliyuncs.com",
         "https://docker.mirrors.ustc.edu.cn",
         "http://f1361db2.m.daocloud.io",
