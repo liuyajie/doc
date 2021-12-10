@@ -49,15 +49,19 @@ systemctl restart docker #重启docker
 mkdir -p /etc/docker   #新建一个目录
 tee /etc/docker/daemon.json <<-'EOF' 
 {
-    "registry-mirrors": [
-        "http://hub-mirror.c.163.com",
-        "https://1nj0zren.mirror.aliyuncs.com",
-        "https://docker.mirrors.ustc.edu.cn",
-        "http://f1361db2.m.daocloud.io",
-        "https://registry.docker-cn.com"
-    ]
+  "registry-mirrors": [
+    "https://hub-mirror.c.163.com",
+    "https://mirror.baidubce.com"
+  ]
 }
 EOF
+
+# 查看是否正确配置镜像加速是否有镜像加速仓库
+docker info 
+
+Registry Mirrors:
+ https://hub-mirror.c.163.com/
+ https://mirror.baidubce.com/
 ```
 
 #### 9、官方的命令参考
