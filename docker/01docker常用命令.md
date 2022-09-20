@@ -83,7 +83,7 @@ docker image rm `docker image ls -q redis` # 删除所有的redis镜像
 
 #### 4、利用commit理解镜像构建
 
-​		具体的构建镜像参考第五章
+​		具体的构建镜像参考Dockerfile
 
 ```shell
 # 运行一个容器
@@ -95,6 +95,14 @@ echo '<h1>Hello,Docker</h1>' > /usr/share/nginx/html/index.html
 docker commit --author 'liuyajie <920288326@qq.com>' --message '修改默认网页' webserver nginx:v1
 # 运行新生成的镜像
 docker run -d --name webserver -p 81:80 nginx:v1
+```
+
+```shell
+# 保存镜像
+docker save lovenginx:1.11 -o lovenginx.tar
+
+# 导入镜像
+docker load -i lovenginx.tar
 ```
 
 #### 5、Dockerfile镜像构建方式
@@ -130,11 +138,11 @@ docker build -t nginx:v2 .
 
 4 镜像上下文
 
--t 指定镜像名称和标签
+​	-t 指定镜像名称和标签
 
--f 指定dockerfile，不写则默认是Dockerfile
+​	-f 指定dockerfile，不写则默认是Dockerfile
 
-. 上下文，由于是B/S架构，会把你指定的上下文发送给服务器，所以写添加、复制文件时要注意，你需要的文件是否存在于上下文中
+​	. 上下文，由于是B/S架构，会把你指定的上下文发送给服务器，所以写添加、复制文件时要注意，你需要的文件是否存在于上下文中
 
 5 可以从不同的地方构建镜像
 
@@ -151,8 +159,6 @@ cat Dockerfile | docker build -
 # 标准输入压缩包构建，包里头有上下文
 
 ```
-
-
 
 ### 二、容器命令
 
@@ -177,7 +183,7 @@ docker start nice_swanson # 启动一个停止的容器 别名 docker container 
 docker restart nice_swanson # 重启一个停止或运行中的容器 别名 docker container restart
 ```
 
-​	后台运行，容器启动之后是否一直在运行，不取决与-d参数，取决于容器内是否有前台程序在运行
+​	后台运行，容器启动之后是否一直在运行，不取决于-d参数，取决于容器内是否有前台程序在运行
 
 ```shell
 # 容器内有前台程序一直在运行，会一直在打印东西
@@ -237,9 +243,16 @@ docker top nginx  # 查看容器中的进程
 docker inspect nginx # 查看容器的详情信息
 ```
 
+#### 7、拷贝
+
+```shell
+# 从容器内往外部拷贝文件
+docker ps aa:/usr/share/nginx/html .
+```
+
 ### 三、数据管理
 
-#### 1、数据卷
+#### 1、数据卷，挂载具名卷
 
 新增，数据卷
 
@@ -261,7 +274,7 @@ docker inspect nginx # 查看容器的详情信息
 
 使用，同一个数据卷可以绑定同一个容器中的多个目录，那么这些目录彼此互通
 
-> docker run -it --name ubuntu --mount source=my-vol,target=/root --mount source=my-vol,target=/home ubuntu
+> docker run -it --name ubuntu    --mount source=my-vol,target=/root    --mount source=my-vol,target=/home ubuntu
 
 删除，删除无主的数据卷，没有容器（运行中+已停止）引用的
 
@@ -304,6 +317,17 @@ docker inspect nginx # 查看容器的详情信息
 > docker inspect nginx
 
 > docker inspect nginx| awk '/"GraphDriver"/,/"Config": {/{if(i>1)print x;x=$0;i++}' | awk '/"Mounts"/,/: {/{if(i>1)print x;x=$0;i++}'
+
+####　3、挂载匿名卷
+
+```shell
+# 匿名挂载（匿名卷），就是把容器中目录出来，与具名卷差不多，都是映射会在`/var/lib/docker/volumes/`创建一个随机空目录
+# Dockerfile中的volume指令也是挂载一个匿名卷
+docker run -d -p 6379:6379 --name mycentos -v /src/volume01
+
+# 具名挂载（命名卷） -v 宿主机数据卷所在路径：容器数据卷所在路径
+docker run -d -p 6379:6379 --name mycentos -v /home/docker_volume:/src/volume01
+```
 
 ### 四、网络
 
@@ -393,9 +417,16 @@ docker inspect busybox3 | grep -n -A 40 "Networks"
 
 #### 3、配置DNS
 
+### 五、常用软件服务使用
+
+```shell
+mysql
+docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -d --name mysql01 --restart=always -v /root/own/datadir:/var/lib/mysql mysql:5.6
+```
 
 
-### 五、Dockerfile
+
+### 六、Dockerfile
 
 #### 1、FROM
 
@@ -405,19 +436,27 @@ docker inspect busybox3 | grep -n -A 40 "Networks"
 FROM busybox
 ```
 
-
-
 #### 2、RUN
 
-如果执行创建文件的命令，默认的工作目录是根目录(/)
+如果执行创建文件的命令，默认的工作目录是根目录(/)，如果改变目录，可以cd，但这个cd只对当前行的命令有效，对下一行的RUN无效，如果想一直有效可以使用WORKDIR。
 
 ```
 FROM ubuntu:latest
-RUN touch index.html \
-&& rm -rf index.html \
+RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-* \
+&& sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* \
+&& yum install -y vim
 ```
 
-#### 3、COPY
+#### 3、EXPOSE
+
+给Dockerfile声明一下该服务需要的端口号，并无其他意义
+
+```dockerfile
+FROM centos:latest
+EXPOSE 80 
+```
+
+#### 4、COPY
 
 如果执行创建文件的命令，默认的工作目录是根目录(/)，可以指定工作目录
 
@@ -432,49 +471,141 @@ COPY ./nginx/ /usr/nginx/conf.d/
 COPY --chown=nginx:nginx ./nginx/ /usr/nginx/conf.d/
 ```
 
-#### 4、ADD
+#### 5、ADD
 
-功能与`COPY`一样，只是多了一些额外的功能，可以解压缩，可以是url链接，但它可以使用构建缓存失效导致构建过程十分缓慢。
+​	功能与`COPY`一样，只是多了一些额外的功能，可以解压缩，可以是url链接，但它可以使用构建缓存失效导致构建过程十分缓慢。因此在 `COPY` 和 `ADD` 指令中选择的时候，可以遵循这样的原则，所有的文件复制均使用 `COPY` 指令，仅在需要自动解压缩的场合使用 `ADD`。
 
-因此在 `COPY` 和 `ADD` 指令中选择的时候，可以遵循这样的原则，所有的文件复制均使用 `COPY` 指令，仅在需要自动解压缩的场合使用 `ADD`。
+```dockerfile
 
-#### 5、CMD
+```
 
-之前介绍容器的时候曾经说过，Docker 不是虚拟机，容器就是进程。既然是进程，那么在启动容器的时候，需要指定所运行的程序及参数。`CMD` 指令就是用于指定默认的容器主进程的启动命令的。
+#### 6、CMD
 
-在运行时可以指定新的命令来替代镜像设置中的这个默认命令，比如，`ubuntu` 镜像默认的 `CMD` 是 `/bin/bash`，如果我们直接 `docker run -it ubuntu` 的话，会直接进入 `bash`。我们也可以在运行时指定运行别的命令，如 `docker run -it ubuntu cat /etc/os-release`。这就是用 `cat /etc/os-release` 命令替换了默认的 `/bin/bash` 命令了，输出了系统版本信息。
+​	之前介绍容器的时候曾经说过，Docker 不是虚拟机，容器就是进程。既然是进程，那么在启动容器的时候，需要指定所运行的程序及参数。`CMD` 指令就是用于指定默认的容器主进程的启动命令的。
+
+​	在运行时可以指定新的命令来替代镜像设置中的这个默认命令，比如，`ubuntu` 镜像默认的 `CMD` 是 `/bin/bash`，如果我们直接 `docker run -it ubuntu` 的话，会直接进入 `bash`。我们也可以在运行时指定运行别的命令，如 `docker run -it ubuntu cat /etc/os-release`。这就是用 `cat /etc/os-release` 命令替换了默认的 `/bin/bash` 命令了，输出了系统版本信息。
 
 在指令格式上，一般推荐使用 `exec` 格式，这类格式在解析时会被解析为 JSON 数组，因此一定要使用双引号 `"`，而不要使用单引号。
 
-提到 `CMD` 就不得不提容器中应用在前台执行和后台执行的问题。这是初学者常出现的一个混淆。
+​	提到 `CMD` 就不得不提容器中应用在前台执行和后台执行的问题。这是初学者常出现的一个混淆。Docker 不是虚拟机，容器中的应用都应该以前台执行，而不是像虚拟机、物理机里面那样，用 `systemd` 去启动后台服务，容器内没有后台服务的概念。
 
-Docker 不是虚拟机，容器中的应用都应该以前台执行，而不是像虚拟机、物理机里面那样，用 `systemd` 去启动后台服务，容器内没有后台服务的概念。
-
-而使用 `service nginx start` 命令，则是希望 upstart 来以后台守护进程形式启动 `nginx` 服务。而刚才说了 `CMD service nginx start` 会被理解为 `CMD [ "sh", "-c", "service nginx start"]`，因此主进程实际上是 `sh`。那么当 `service nginx start` 命令结束后，`sh` 也就结束了，`sh` 作为主进程退出了，自然就会令容器退出。
+​	而使用 `service nginx start` 命令，则是希望 upstart 来以后台守护进程形式启动 `nginx` 服务。而刚才说了 `CMD service nginx start` 会被理解为 `CMD [ "sh", "-c", "service nginx start"]`，因此主进程实际上是 `sh`。那么当 `service nginx start` 命令结束后，`sh` 也就结束了，`sh` 作为主进程退出了，自然就会令容器退出。
 
 ```shell
-
+# 多个CMD只有最后一个生效
 CMD echo $HOME
 CMD ["sh","-c","echo $HOME"]
 
 CMD service nginx start
 CMD ["sh","-c","service nginx start"]
 
-# 正确做法
-CMD ["nginx","-g","daemon off;"]
+CMD nginx -g daemon off # 不会运行的，它会解释成sh -c nginx -g daemon off
+CMD ["nginx","-g","daemon off;"] # 正确运行
 ```
 
 #### 5、ENTRYPOINT
 
+​	最后执行，功能与CMD差不多，多个也只是运行最后一个。
+
+```dockerfile
+# 结合CMD来使用，这样CMD用来接收参数
+FROM nginx
+ENTRYPOINT ["nginx", "-c"] # 定参
+CMD ["/etc/nginx/nginx.conf"] # 变参
+# run运行容器时不传参
+docker run  nginx:test
+nginx -c /etc/nginx/nginx.conf # 最终运行
+# run运行容器时传参
+docker run  nginx:test -c /etc/nginx/new.conf
+nginx -c /etc/nginx/new.conf # 最终运行
+```
+
+```dockerfile
+# 结合脚本来使用
+FROM alpine:3.4
+RUN addgroup -S redis && adduser -S -G redis redis
+ENTRYPOINT ["docker-entrypoint.sh"]
+EXPOSE 6379
+CMD [ "redis-server" ]
+
+# docker-entrypoint.sh脚本
+#!/bin/sh
+# allow the container to be started with `--user`
+if [ "$1" = 'redis-server' -a "$(id -u)" = '0' ]; then
+    find . \! -user redis -exec chown redis '{}' +
+    exec gosu redis "$0" "$@"
+fi
+exec "$@"
+```
+
+```dockerfile
+# 二者的区别
+CMD                   # 指定这个容器启动的时候要运行的命令，不可以追加命令
+ENTRYPOINT            # 指定这个容器启动的时候要运行的命令，可以追加命令
+```
+
 #### 6、ENV
 
-#### 5、ARG
+设置环境变量，定义了环境变量，那么在后续的指令中，就可以使用这个环境变量。构建好的容器中也会有这个环境变量。
 
-#### 5、VOLUME
+```dockerfile
+ENV NODE_VERSION 7.2.0
 
-#### 5、
+RUN curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-x64.tar.xz" \
+  && curl -SLO "https://nodejs.org/dist/v$NODE_VERSION/SHASUMS256.txt.asc"
+```
 
-#### 5、
+#### 7、ARG
 
-#### 5、
+构建参数，与 ENV 作用一致。不过作用域不一样。ARG 设置的环境变量仅对 Dockerfile 内有效，也就是说只有 docker build 的过程中有效，构建好的镜像内不存在此环境变量。
+
+构建命令 docker build 中可以用 --build-arg <参数名>=<值> 来覆盖。
+
+格式：
+
+```dockerfile
+ARG NODE_VERSION=7.2.0
+```
+
+#### 8、VOLUME
+
+定义匿名数据卷。在启动容器时忘记挂载数据卷，会自动挂载到匿名卷。
+
+作用：
+
+- 避免重要的数据，因容器重启而丢失，这是非常致命的。
+- 避免容器不断变大。
+
+格式：
+
+```
+VOLUME ["/etc/nginx", "/etc/nginx"]
+VOLUME /etc/nginx
+```
+
+在启动容器 docker run 的时候，我们可以通过 -v 参数修改挂载点。
+
+### 七、Compose
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
